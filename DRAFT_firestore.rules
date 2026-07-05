@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    
+    function isValidAddress(address) {
+      return address is map 
+        && address.keys().hasAll(['buildingNameOrNo', 'area1', 'pincode', 'city', 'state', 'country'])
+        && address.buildingNameOrNo is string && address.buildingNameOrNo.size() <= 200
+        && address.area1 is string && address.area1.size() <= 200
+        && address.pincode is string && address.pincode.size() <= 20
+        && address.city is string && address.city.size() <= 100
+        && address.state is string && address.state.size() <= 100
+        && address.country is string && address.country.size() <= 100
+        && (!('area2' in address) || (address.area2 is string && address.area2.size() <= 200))
+        && (!('landmark' in address) || (address.landmark is string && address.landmark.size() <= 200));
+    }
+
+    function isValidBuyerProfile(profile) {
+      return profile is map
+        && profile.keys().hasAll(['name', 'username', 'address'])
+        && profile.name is string && profile.name.size() <= 100
+        && profile.username is string && profile.username.size() <= 100
+        && isValidAddress(profile.address)
+        && (!('image' in profile) || (profile.image is string && profile.image.size() <= 1000000));
+    }
+
+    function isValidSellerProfile(profile) {
+      return profile is map
+        && profile.keys().hasAll(['businessName', 'businessUsername', 'businessType', 'businessAddress'])
+        && profile.businessName is string && profile.businessName.size() <= 100
+        && profile.businessUsername is string && profile.businessUsername.size() <= 100
+        && profile.businessType is string && profile.businessType.size() <= 100
+        && isValidAddress(profile.businessAddress)
+        && (!('image' in profile) || (profile.image is string && profile.image.size() <= 1000000))
+        && (!('businessTagline' in profile) || (profile.businessTagline is string && profile.businessTagline.size() <= 500));
+    }
+
+    function isValidProfile(data) {
+      return data.name is string && data.name.size() <= 100
+        && data.username is string && data.username.size() <= 100
+        && data.image is string && data.image.size() <= 1000000
+        && (!('buyerProfile' in data) || isValidBuyerProfile(data.buyerProfile))
+        && (!('sellerProfile' in data) || isValidSellerProfile(data.sellerProfile));
+    }
+    
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() <= 200
+        && data.description is string && data.description.size() <= 5000
+        && data.price is number && data.price >= 0
+        && data.images is list && data.images.size() <= 5 && (data.images.size() == 0 || data.images[0] is string)
+        && data.sellerId is string && data.sellerId == request.auth.uid
+        && data.sellerName is string && data.sellerName.size() <= 100;
+    }
+
+    match /profiles/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if isOwner(userId) && isValidId(userId) && resource.data.name != null;
+      
+      allow create: if isOwner(userId) && isValidId(userId)
+        && isValidProfile(incoming())
+        && incoming().keys().hasAll(['name', 'username', 'image', 'createdAt', 'updatedAt'])
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && (!('buyerProfile' in incoming()) || isValidBuyerProfile(incoming().buyerProfile))
+        && (!('sellerProfile' in incoming()) || isValidSellerProfile(incoming().sellerProfile));
+        
+      allow update: if isOwner(userId) && isValidId(userId)
+        && isValidProfile(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'username', 'image', 'buyerProfile', 'sellerProfile', 'updatedAt']);
+    }
+    
+    match /products/{productId} {
+      allow get: if isSignedIn() && isValidId(productId);
+      allow list: if isSignedIn() && resource.data.sellerId != null;
+      
+      allow create: if isSignedIn() && isValidId(productId)
+        && isValidProduct(incoming())
+        && incoming().keys().hasAll(['name', 'description', 'price', 'images', 'sellerId', 'sellerName'])
+        && incoming().keys().size() == 6
+        && exists(/databases/$(database)/documents/profiles/$(request.auth.uid));
+        
+      allow update: if isSignedIn() && isValidId(productId)
+        && isOwner(existing().sellerId)
+        && isValidProduct(incoming())
+        && incoming().sellerId == existing().sellerId
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'images', 'sellerName']);
+        
+      allow delete: if isSignedIn() && isValidId(productId)
+        && isOwner(existing().sellerId);
+    }
+  }
+}

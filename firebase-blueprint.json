@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "Address": {
+      "title": "Address",
+      "description": "A physical address.",
+      "type": "object",
+      "properties": {
+        "buildingNameOrNo": { "type": "string" },
+        "area1": { "type": "string" },
+        "area2": { "type": "string" },
+        "landmark": { "type": "string" },
+        "pincode": { "type": "string" },
+        "city": { "type": "string" },
+        "state": { "type": "string" },
+        "country": { "type": "string" }
+      },
+      "required": ["buildingNameOrNo", "area1", "pincode", "city", "state", "country"]
+    },
+    "BuyerProfile": {
+      "title": "BuyerProfile",
+      "description": "Buyer specific profile data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "image": { "type": "string" },
+        "address": { "$ref": "#/entities/Address" }
+      },
+      "required": ["name", "username", "address"]
+    },
+    "SellerProfile": {
+      "title": "SellerProfile",
+      "description": "Seller specific profile data.",
+      "type": "object",
+      "properties": {
+        "businessName": { "type": "string" },
+        "businessUsername": { "type": "string" },
+        "image": { "type": "string" },
+        "businessType": { "type": "string" },
+        "businessTagline": { "type": "string" },
+        "businessAddress": { "$ref": "#/entities/Address" }
+      },
+      "required": ["businessName", "businessUsername", "businessType", "businessAddress"]
+    },
+    "Profile": {
+      "title": "Profile",
+      "description": "User profile data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "image": { "type": "string" },
+        "buyerProfile": { "$ref": "#/entities/BuyerProfile" },
+        "sellerProfile": { "$ref": "#/entities/SellerProfile" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      },
+      "required": ["name", "username", "createdAt", "updatedAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A product listing.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "images": { "type": "array" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" }
+      },
+      "required": ["name", "description", "price", "images", "sellerId", "sellerName"]
+    }
+  },
+  "firestore": {
+    "profiles/{userId}": {
+      "schema": { "$ref": "#/entities/Profile" },
+      "description": "Stores user profiles."
+    },
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Stores product listings."
+    }
+  }
+}

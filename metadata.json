@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Market",
+  "description": "A dual-mode shopping marketplace with both buyer browsing and seller management views.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
