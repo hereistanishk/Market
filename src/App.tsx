@@ -5,6 +5,7 @@ import { SellerDashboard } from './components/SellerDashboard';
 import { UserProfile } from './components/UserProfile';
 import { Login } from './components/Login';
 import { Cart } from './components/Cart';
+import { Checkout } from './components/Checkout';
 import { Product, ProfileData, CartItem } from './types';
 import { INITIAL_PRODUCTS } from './data';
 import { motion, AnimatePresence } from 'motion/react';
@@ -15,10 +16,11 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc, de
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [mode, setMode] = useState<'buyer' | 'seller' | 'profile'>('buyer');
+  const [mode, setMode] = useState<'buyer' | 'seller' | 'profile' | 'checkout'>('buyer');
   const [activeProfileTab, setActiveProfileTab] = useState<'buyer' | 'seller'>('buyer');
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [checkoutItems, setCheckoutItems] = useState<{product: Product, quantity: number}[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -137,6 +139,44 @@ export default function App() {
     }
   };
 
+  const handleBuyNow = (product: Product) => {
+    if (!currentUser) {
+      setMode('profile');
+      return;
+    }
+    setCheckoutItems([{ product, quantity: 1 }]);
+    setMode('checkout');
+  };
+
+  const handleCheckoutCart = () => {
+    if (!currentUser) {
+      setMode('profile');
+      return;
+    }
+    setIsCartOpen(false);
+    setCheckoutItems(cartItems.map(item => ({ product: item.product, quantity: item.quantity })));
+    setMode('checkout');
+  };
+
+  const handlePlaceOrder = async () => {
+    setCheckoutItems([]);
+    setMode('buyer');
+    
+    // Clear cart if the items were from the cart
+    if (currentUser) {
+      try {
+        cartItems.forEach(async (item) => {
+          if (item.productId) {
+            const cartRef = doc(db, 'profiles', currentUser.uid, 'cartItems', item.productId);
+            await deleteDoc(cartRef);
+          }
+        });
+      } catch (error) {
+        console.error("Error clearing cart after order", error);
+      }
+    }
+  };
+
   const handleAddToCart = async (product: Product) => {
     if (!currentUser) {
       setMode('profile');
@@ -248,6 +288,7 @@ export default function App() {
               <BuyerDashboard 
                 products={products} 
                 onAddToCart={handleAddToCart} 
+                onBuyNow={handleBuyNow}
               />
             </motion.div>
           )}
@@ -290,6 +331,24 @@ export default function App() {
               />
             </motion.div>
           )}
+
+          {mode === 'checkout' && (
+            <motion.div
+              key="checkout"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-10"
+            >
+              <Checkout 
+                products={checkoutItems}
+                profile={currentProfile}
+                onBack={() => setMode('buyer')}
+                onPlaceOrder={handlePlaceOrder}
+              />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -298,6 +357,7 @@ export default function App() {
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         updateQuantity={updateCartQuantity}
+        onCheckout={handleCheckoutCart}
       />
     </div>
   );

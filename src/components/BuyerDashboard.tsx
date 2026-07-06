@@ -8,9 +8,10 @@ import { AnimatePresence } from 'motion/react';
 interface BuyerDashboardProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
+  onBuyNow: (product: Product) => void;
 }
 
-export function BuyerDashboard({ products, onAddToCart }: BuyerDashboardProps) {
+export function BuyerDashboard({ products, onAddToCart, onBuyNow }: BuyerDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -28,6 +29,7 @@ export function BuyerDashboard({ products, onAddToCart }: BuyerDashboardProps) {
             product={selectedProduct} 
             onBack={() => setSelectedProduct(null)} 
             onAddToCart={onAddToCart} 
+            onBuyNow={onBuyNow}
           />
         ) : (
           <div key="grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

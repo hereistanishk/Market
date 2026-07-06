@@ -8,9 +8,10 @@ interface ProductDetailProps {
   product: Product;
   onBack: () => void;
   onAddToCart: (product: Product) => void;
+  onBuyNow: (product: Product) => void;
 }
 
-export function ProductDetail({ product, onBack, onAddToCart }: ProductDetailProps) {
+export function ProductDetail({ product, onBack, onAddToCart, onBuyNow }: ProductDetailProps) {
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isFullscreenViewerOpen, setIsFullscreenViewerOpen] = useState(false);
 
@@ -137,7 +138,10 @@ export function ProductDetail({ product, onBack, onAddToCart }: ProductDetailPro
                 <ShoppingCart className="w-5 h-5" />
                 Add to Cart
               </button>
-              <button className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors">
+              <button 
+                onClick={() => onBuyNow(product)}
+                className="flex-1 flex items-center justify-center gap-2 bg-gray-900 text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
+              >
                 <CreditCard className="w-5 h-5" />
                 Buy Now
               </button>

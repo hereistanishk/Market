@@ -8,9 +8,10 @@ interface CartProps {
   onClose: () => void;
   cartItems: CartItem[];
   updateQuantity: (productId: string, delta: number) => void;
+  onCheckout: () => void;
 }
 
-export function Cart({ isOpen, onClose, cartItems, updateQuantity }: CartProps) {
+export function Cart({ isOpen, onClose, cartItems, updateQuantity, onCheckout }: CartProps) {
   const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
   return (
@@ -59,7 +60,7 @@ export function Cart({ isOpen, onClose, cartItems, updateQuantity }: CartProps) 
                     <div className="flex-1 flex flex-col justify-between">
                       <div className="text-sm font-medium text-gray-900 line-clamp-2">{item.product.name}</div>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="font-semibold text-gray-900">${item.product.price.toFixed(2)}</span>
+                        <span className="font-semibold text-gray-900">₹{item.product.price.toFixed(2)}</span>
                         <div className="flex items-center bg-gray-100 text-gray-900 rounded-lg overflow-hidden">
                           <button onClick={() => updateQuantity(item.productId!, -1)} className="px-2 py-1 hover:bg-gray-200">
                             <Minus className="w-4 h-4" />
@@ -80,12 +81,15 @@ export function Cart({ isOpen, onClose, cartItems, updateQuantity }: CartProps) 
               <div className="bg-white p-4 border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-gray-600">Bill total</span>
-                  <span className="font-bold text-gray-900">${total.toFixed(2)}</span>
+                  <span className="font-bold text-gray-900">₹{total.toFixed(2)}</span>
                 </div>
-                <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-between">
+                <button 
+                  onClick={onCheckout}
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-between"
+                >
                   <div className="flex flex-col items-start">
                     <span className="text-sm leading-none">{cartItems.reduce((a, b) => a + b.quantity, 0)} items</span>
-                    <span className="text-sm leading-none mt-1 opacity-90">${total.toFixed(2)}</span>
+                    <span className="text-sm leading-none mt-1 opacity-90">₹{total.toFixed(2)}</span>
                   </div>
                   <span className="flex items-center gap-2">
                     Proceed to Pay <span className="text-lg">→</span>
