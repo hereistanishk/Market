@@ -8,8 +8,12 @@ export interface Product {
   sellerName: string;
 }
 
-export interface CartItem extends Product {
+export interface CartItem {
+  product: Product;
   quantity: number;
+  addedAt?: number;
+  id?: string;
+  productId?: string;
 }
 
 export interface Address {

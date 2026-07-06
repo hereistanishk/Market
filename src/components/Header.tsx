@@ -6,9 +6,10 @@ interface HeaderProps {
   mode: 'buyer' | 'seller' | 'profile';
   setMode: (mode: 'buyer' | 'seller' | 'profile') => void;
   cartCount: number;
+  onCartClick: () => void;
 }
 
-export function Header({ mode, setMode, cartCount }: HeaderProps) {
+export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -24,7 +25,7 @@ export function Header({ mode, setMode, cartCount }: HeaderProps) {
             <button
               onClick={() => setMode('buyer')}
               className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === 'buyer' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                mode === 'buyer' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
               }`}
             >
               {mode === 'buyer' && (
@@ -42,7 +43,7 @@ export function Header({ mode, setMode, cartCount }: HeaderProps) {
             <button
               onClick={() => setMode('seller')}
               className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === 'seller' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                mode === 'seller' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
               }`}
             >
               {mode === 'seller' && (
@@ -61,29 +62,33 @@ export function Header({ mode, setMode, cartCount }: HeaderProps) {
 
           <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
             {mode === 'buyer' && (
-              <div className="relative flex items-center text-gray-700 hover:text-gray-900 transition-colors cursor-pointer" title="Cart functionality is simulated">
-                <ShoppingBag className="w-6 h-6" />
+              <button 
+                onClick={onCartClick}
+                className="relative flex items-center gap-2 text-gray-700 hover:text-gray-900 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                <span className="font-medium text-sm hidden sm:block">Cart</span>
                 {cartCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full"
+                    className="absolute -top-1 -right-1 bg-gray-900 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
                   >
                     {cartCount}
                   </motion.span>
                 )}
-              </div>
+              </button>
             )}
             
             <div className="relative">
               <button
                 onClick={() => setMode('profile')}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ml-2 border shadow-sm ${
-                  mode === 'profile' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ml-2 border ${
+                  mode === 'profile' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
                 }`}
                 title="Profile"
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
               </button>
             </div>
           </div>

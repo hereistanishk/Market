@@ -4,7 +4,8 @@ import { BuyerDashboard } from './components/BuyerDashboard';
 import { SellerDashboard } from './components/SellerDashboard';
 import { UserProfile } from './components/UserProfile';
 import { Login } from './components/Login';
-import { Product, ProfileData } from './types';
+import { Cart } from './components/Cart';
+import { Product, ProfileData, CartItem } from './types';
 import { INITIAL_PRODUCTS } from './data';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
@@ -17,7 +18,8 @@ export default function App() {
   const [mode, setMode] = useState<'buyer' | 'seller' | 'profile'>('buyer');
   const [activeProfileTab, setActiveProfileTab] = useState<'buyer' | 'seller'>('buyer');
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [cartCount, setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
   const [currentProfile, setCurrentProfile] = useState<ProfileData>({
@@ -28,6 +30,7 @@ export default function App() {
 
   useEffect(() => {
     let unsubscribeProducts: () => void;
+    let unsubscribeCart: () => void;
     
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -65,11 +68,26 @@ export default function App() {
             console.error("Error fetching products:", error);
           });
           
+          // Subscribe to cart items
+          const cartQ = query(collection(db, 'profiles', user.uid, 'cartItems'));
+          unsubscribeCart = onSnapshot(cartQ, (snapshot) => {
+            const items = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as CartItem[];
+            setCartItems(items);
+          }, (error: any) => {
+            if (error.code === 'permission-denied') return; // Ignore on logout
+            console.error("Error fetching cart items:", error);
+          });
+          
         } catch (error) {
           console.error("Error fetching/creating profile:", error);
         }
       } else {
         if (unsubscribeProducts) unsubscribeProducts();
+        if (unsubscribeCart) unsubscribeCart();
+        setCartItems([]);
       }
       setLoading(false);
     });
@@ -77,6 +95,7 @@ export default function App() {
     return () => {
       unsubscribe();
       if (unsubscribeProducts) unsubscribeProducts();
+      if (unsubscribeCart) unsubscribeCart();
     };
   }, []);
 
@@ -118,8 +137,63 @@ export default function App() {
     }
   };
 
-  const handleAddToCart = (product: Product) => {
-    setCartCount(prev => prev + 1);
+  const handleAddToCart = async (product: Product) => {
+    if (!currentUser) {
+      setMode('profile');
+      return;
+    }
+    
+    if (!product.id) return;
+    
+    const existing = cartItems.find(item => item.productId === product.id);
+    const cartRef = doc(db, 'profiles', currentUser.uid, 'cartItems', product.id);
+    
+    try {
+      if (existing) {
+        await updateDoc(cartRef, {
+          quantity: existing.quantity + 1
+        });
+      } else {
+        await setDoc(cartRef, {
+          product: {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            images: product.images,
+            sellerId: product.sellerId,
+            sellerName: product.sellerName
+          },
+          productId: product.id,
+          quantity: 1,
+          addedAt: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error("Error adding to cart", error);
+      handleFirestoreError(error, OperationType.WRITE, `profiles/${currentUser.uid}/cartItems`);
+    }
+  };
+
+  const updateCartQuantity = async (productId: string, delta: number) => {
+    if (!currentUser) return;
+    const existing = cartItems.find(item => item.productId === productId);
+    if (!existing) return;
+    
+    const newQuantity = existing.quantity + delta;
+    const cartRef = doc(db, 'profiles', currentUser.uid, 'cartItems', productId);
+    
+    try {
+      if (newQuantity <= 0) {
+        await deleteDoc(cartRef);
+      } else {
+        await updateDoc(cartRef, {
+          quantity: newQuantity
+        });
+      }
+    } catch (error) {
+      console.error("Error updating cart quantity", error);
+      handleFirestoreError(error, OperationType.UPDATE, `profiles/${currentUser.uid}/cartItems`);
+    }
   };
 
   const handleAddProduct = async (newProduct: Omit<Product, 'id'>) => {
@@ -159,7 +233,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-900">
-      <Header mode={mode} setMode={setMode} cartCount={cartCount} />
+      <Header mode={mode} setMode={setMode} cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} onCartClick={() => setIsCartOpen(true)} />
       
       <main className="relative overflow-x-hidden">
         <AnimatePresence mode="wait">
@@ -218,6 +292,13 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      <Cart 
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cartItems={cartItems}
+        updateQuantity={updateCartQuantity}
+      />
     </div>
   );
 }

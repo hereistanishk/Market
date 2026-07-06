@@ -64,6 +64,18 @@ service cloud.firestore {
         && data.sellerName is string && data.sellerName.size() <= 100;
     }
 
+    function isValidCartItem(data) {
+      return data.productId is string && data.productId.size() <= 128
+        && data.quantity is number && data.quantity >= 0
+        && data.product is map
+        && data.product.name is string && data.product.name.size() <= 200
+        && (!('description' in data.product) || (data.product.description is string && data.product.description.size() <= 5000))
+        && data.product.price is number && data.product.price >= 0
+        && (!('images' in data.product) || (data.product.images is list && data.product.images.size() <= 5))
+        && data.product.sellerId is string && data.product.sellerId.size() <= 128
+        && data.product.sellerName is string && data.product.sellerName.size() <= 100;
+    }
+
     match /profiles/{userId} {
       allow get: if isOwner(userId) && isValidId(userId);
       allow list: if isOwner(userId) && isValidId(userId) && resource.data.name != null;
@@ -81,6 +93,16 @@ service cloud.firestore {
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt is timestamp
         && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'username', 'image', 'buyerProfile', 'sellerProfile', 'updatedAt']);
+    }
+
+    match /profiles/{userId}/cartItems/{cartItemId} {
+      allow read: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidId(cartItemId)
+        && isValidCartItem(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidId(cartItemId)
+        && isValidCartItem(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['quantity', 'product']);
+      allow delete: if isOwner(userId) && isValidId(userId) && isValidId(cartItemId);
     }
     
     match /products/{productId} {

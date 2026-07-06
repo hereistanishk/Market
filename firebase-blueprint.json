@@ -70,12 +70,28 @@
         "sellerName": { "type": "string" }
       },
       "required": ["name", "description", "price", "images", "sellerId", "sellerName"]
+    },
+    "CartItem": {
+      "title": "CartItem",
+      "description": "An item in the user's cart.",
+      "type": "object",
+      "properties": {
+        "product": { "$ref": "#/entities/Product" },
+        "quantity": { "type": "number" },
+        "addedAt": { "type": "timestamp" },
+        "productId": { "type": "string" }
+      },
+      "required": ["product", "quantity", "addedAt", "productId"]
     }
   },
   "firestore": {
     "profiles/{userId}": {
       "schema": { "$ref": "#/entities/Profile" },
       "description": "Stores user profiles."
+    },
+    "profiles/{userId}/cartItems/{cartItemId}": {
+      "schema": { "$ref": "#/entities/CartItem" },
+      "description": "Stores items in the user's shopping cart."
     },
     "products/{productId}": {
       "schema": { "$ref": "#/entities/Product" },

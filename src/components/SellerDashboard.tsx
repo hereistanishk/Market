@@ -151,7 +151,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
         </div>
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="bg-green-50 p-3 rounded-xl text-green-600">
+            <div className="bg-gray-50 p-3 rounded-xl text-green-600">
               <IndianRupee className="w-6 h-6" />
             </div>
             <div>
