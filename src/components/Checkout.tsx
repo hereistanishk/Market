@@ -38,6 +38,11 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
         body: JSON.stringify({ amount: amountPaise, currency: "INR" })
       });
       
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Backend API is not available. If deployed on Vercel, ensure the API routes are configured correctly.");
+      }
+      
       const order = await res.json();
       if (!res.ok) throw new Error(order.error || "Failed to create order");
 
@@ -55,6 +60,12 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(response)
             });
+            
+            const verifyContentType = verifyRes.headers.get("content-type");
+            if (!verifyContentType || !verifyContentType.includes("application/json")) {
+              throw new Error("Backend verification API is not available.");
+            }
+            
             const verifyData = await verifyRes.json();
             if (verifyRes.ok && verifyData.success) {
               setIsSuccess(true);
