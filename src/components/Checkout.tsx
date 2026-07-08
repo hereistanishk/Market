@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { Product, ProfileData } from '../types';
 import { motion } from 'motion/react';
 
@@ -18,15 +18,18 @@ interface CheckoutProps {
 
 export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutProps) {
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   
   const total = products.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const address = profile.buyerProfile?.address;
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!address) return;
     setIsProcessing(true);
+    setIsCancelled(false);
     setErrorMsg("");
     
     try {
@@ -74,9 +77,6 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
             const verifyData = await verifyRes.json();
             if (verifyRes.ok && verifyData.success) {
               setIsSuccess(true);
-              setTimeout(() => {
-                onPlaceOrder();
-              }, 2000);
             } else {
               setErrorMsg(verifyData.error || "Payment verification failed");
               setIsProcessing(false);
@@ -95,6 +95,7 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
         modal: {
           ondismiss: function() {
             setIsProcessing(false);
+            setIsCancelled(true);
           }
         }
       };
@@ -126,6 +127,40 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
         <p className="text-gray-600 mb-8 max-w-md">
           Thank you for your purchase. You will receive an email confirmation shortly.
         </p>
+        <button 
+          onClick={onPlaceOrder}
+          className="bg-gray-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-800 transition-colors"
+        >
+          Continue Shopping
+        </button>
+      </div>
+    );
+  }
+
+  if (isCancelled) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center p-8 text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", bounce: 0.5 }}
+          className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-6"
+        >
+          <XCircle className="w-12 h-12" />
+        </motion.div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Cancelled</h1>
+        <p className="text-gray-600 mb-8 max-w-md">
+          You have cancelled the payment process. Your order has not been placed.
+        </p>
+        <button 
+          onClick={() => {
+            setIsCancelled(false);
+            setErrorMsg("");
+          }}
+          className="bg-gray-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-800 transition-colors"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -213,6 +248,7 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
             )}
 
             <button 
+              type="button"
               onClick={handlePlaceOrder}
               disabled={!address || isProcessing}
               className="w-full bg-gray-900 text-white font-bold py-4 px-6 rounded-xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
