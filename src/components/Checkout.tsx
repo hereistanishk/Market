@@ -46,8 +46,13 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
       const order = await res.json();
       if (!res.ok) throw new Error(order.error || "Failed to create order");
 
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!razorpayKey) {
+        throw new Error("Razorpay Key is missing. If you deployed to Vercel, you must add VITE_RAZORPAY_KEY_ID to your Vercel Environment Variables and redeploy.");
+      }
+
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: order.amount,
         currency: order.currency,
         name: "Remix Market",
