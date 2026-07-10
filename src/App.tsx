@@ -6,6 +6,7 @@ import { UserProfile } from './components/UserProfile';
 import { Login } from './components/Login';
 import { Cart } from './components/Cart';
 import { Checkout } from './components/Checkout';
+import { FooterNav } from './components/FooterNav';
 import { Product, ProfileData, CartItem } from './types';
 import { INITIAL_PRODUCTS } from './data';
 import { motion, AnimatePresence } from 'motion/react';
@@ -16,7 +17,8 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, addDoc, de
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [mode, setMode] = useState<'buyer' | 'seller' | 'profile' | 'checkout'>('buyer');
+  const [appSection, setAppSection] = useState<'shop' | 'freelance' | 'message' | 'dropship' | 'browse' | 'profile' | 'checkout'>('shop');
+  const [userRole, setUserRole] = useState<'buyer' | 'seller'>('buyer');
   const [activeProfileTab, setActiveProfileTab] = useState<'buyer' | 'seller'>('buyer');
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -145,7 +147,7 @@ export default function App() {
       return;
     }
     setCheckoutItems([{ product, quantity: 1 }]);
-    setMode('checkout');
+    setAppSection('checkout');
   };
 
   const handleCheckoutCart = () => {
@@ -273,11 +275,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans text-gray-900">
-      <Header mode={mode} setMode={setMode} cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} onCartClick={() => setIsCartOpen(true)} />
+      <Header userRole={userRole} setUserRole={setUserRole} onProfileClick={() => setAppSection('profile')} isProfileActive={appSection === 'profile'} cartCount={cartItems.reduce((acc, item) => acc + item.quantity, 0)} onCartClick={() => setIsCartOpen(true)} />
       
-      <main className="relative overflow-x-hidden">
+      <main className="relative overflow-x-hidden pb-20">
         <AnimatePresence mode="wait">
-          {mode === 'buyer' && (
+          {appSection === 'shop' && userRole === 'buyer' && (
             <motion.div
               key="buyer"
               initial={{ opacity: 0, x: -20 }}
@@ -292,7 +294,7 @@ export default function App() {
               />
             </motion.div>
           )}
-          {mode === 'seller' && (
+          {appSection === 'shop' && userRole === 'seller' && (
             <motion.div
               key="seller"
               initial={{ opacity: 0, x: 20 }}
@@ -315,7 +317,7 @@ export default function App() {
               />
             </motion.div>
           )}
-          {mode === 'profile' && (
+          {appSection === 'profile' && (
             <motion.div
               key="profile"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -332,7 +334,7 @@ export default function App() {
             </motion.div>
           )}
 
-          {mode === 'checkout' && (
+          {appSection === 'checkout' && (
             <motion.div
               key="checkout"
               initial={{ opacity: 0, y: 20 }}
@@ -344,9 +346,79 @@ export default function App() {
               <Checkout 
                 products={checkoutItems}
                 profile={currentProfile}
-                onBack={() => setMode('buyer')}
+                onBack={() => setAppSection('shop')}
                 onPlaceOrder={handlePlaceOrder}
               />
+            </motion.div>
+          )}
+          
+          {appSection === 'freelance' && (
+            <motion.div
+              key="freelance"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-10 flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+            >
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Freelance Marketplace</h2>
+              <p className="text-gray-500 max-w-sm mb-6">
+                {userRole === 'buyer' 
+                  ? 'Opt for freelance work and hire talented professionals. Feature coming soon.' 
+                  : 'Publish your gig and find freelance work. Feature coming soon.'}
+              </p>
+            </motion.div>
+          )}
+{appSection === 'message' && (
+            <motion.div
+              key="message"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-10 flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+            >
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Messages</h2>
+              <p className="text-gray-500 max-w-sm">{userRole === 'buyer' ? 'Connect with buyers and sellers in real-time. Message feature coming soon.' : 'Message with sellers and buyers both. Message feature coming soon.'}</p>
+            </motion.div>
+          )}
+          
+          {appSection === 'dropship' && (
+            <motion.div
+              key="dropship"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-10 flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+            >
+              <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Drop Shipping</h2>
+              <p className="text-gray-500 max-w-sm">Manage your drop shipping products and orders. Feature coming soon.</p>
+            </motion.div>
+          )}
+{appSection === 'browse' && (
+            <motion.div
+              key="browse"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-10 flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+            >
+              <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-4">
+                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Browse & Settings</h2>
+              <p className="text-gray-500 max-w-sm">Settings and other features coming soon.</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -359,6 +431,7 @@ export default function App() {
         updateQuantity={updateCartQuantity}
         onCheckout={handleCheckoutCart}
       />
+      <FooterNav appSection={appSection} setAppSection={setAppSection} />
     </div>
   );
 }

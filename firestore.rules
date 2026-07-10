@@ -61,7 +61,8 @@ service cloud.firestore {
         && data.price is number && data.price >= 0
         && data.images is list && data.images.size() <= 5 && (data.images.size() == 0 || data.images[0] is string)
         && data.sellerId is string && data.sellerId == request.auth.uid
-        && data.sellerName is string && data.sellerName.size() <= 100;
+        && (!('sellerName' in data) || (data.sellerName is string && data.sellerName.size() <= 100))
+        && (!('displayPrice' in data) || (data.displayPrice is string && data.displayPrice.size() <= 100));
     }
 
     function isValidCartItem(data) {
@@ -73,7 +74,8 @@ service cloud.firestore {
         && data.product.price is number && data.product.price >= 0
         && (!('images' in data.product) || (data.product.images is list && data.product.images.size() <= 5))
         && data.product.sellerId is string && data.product.sellerId.size() <= 128
-        && data.product.sellerName is string && data.product.sellerName.size() <= 100;
+        && (!('sellerName' in data.product) || (data.product.sellerName is string && data.product.sellerName.size() <= 100))
+        && (!('displayPrice' in data.product) || (data.product.displayPrice is string && data.product.displayPrice.size() <= 100));
     }
 
     match /profiles/{userId} {
@@ -112,14 +114,14 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidId(productId)
         && isValidProduct(incoming())
         && incoming().keys().hasAll(['name', 'description', 'price', 'images', 'sellerId', 'sellerName'])
-        && incoming().keys().size() == 6
+        && incoming().keys().size() <= 7
         && exists(/databases/$(database)/documents/profiles/$(request.auth.uid));
         
       allow update: if isSignedIn() && isValidId(productId)
         && isOwner(existing().sellerId)
         && isValidProduct(incoming())
         && incoming().sellerId == existing().sellerId
-        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'images', 'sellerName']);
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'description', 'price', 'images', 'sellerName', 'displayPrice']);
         
       allow delete: if isSignedIn() && isValidId(productId)
         && isOwner(existing().sellerId);

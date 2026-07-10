@@ -3,13 +3,15 @@ import { ShoppingBag, Store, User } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface HeaderProps {
-  mode: 'buyer' | 'seller' | 'profile';
-  setMode: (mode: 'buyer' | 'seller' | 'profile') => void;
+  userRole: 'buyer' | 'seller';
+  setUserRole: (role: 'buyer' | 'seller') => void;
+  onProfileClick: () => void;
+  isProfileActive: boolean;
   cartCount: number;
   onCartClick: () => void;
 }
 
-export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
+export function Header({ userRole, setUserRole, onProfileClick, isProfileActive, cartCount, onCartClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -23,12 +25,12 @@ export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
         <div className="flex items-center gap-3 sm:gap-6">
           <div className="flex bg-gray-100 p-1 rounded-lg">
             <button
-              onClick={() => setMode('buyer')}
+              onClick={() => setUserRole('buyer')}
               className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === 'buyer' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
+                userRole === 'buyer' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
               }`}
             >
-              {mode === 'buyer' && (
+              {userRole === 'buyer' && (
                 <motion.div
                   layoutId="mode-pill"
                   className="absolute inset-0 bg-white shadow-sm rounded-md"
@@ -41,12 +43,12 @@ export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
               </span>
             </button>
             <button
-              onClick={() => setMode('seller')}
+              onClick={() => setUserRole('seller')}
               className={`relative px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                mode === 'seller' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
+                userRole === 'seller' ? 'text-gray-900' : 'text-gray-800 hover:text-gray-900'
               }`}
             >
-              {mode === 'seller' && (
+              {userRole === 'seller' && (
                 <motion.div
                   layoutId="mode-pill"
                   className="absolute inset-0 bg-white shadow-sm rounded-md"
@@ -61,7 +63,7 @@ export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-            {mode === 'buyer' && (
+            {userRole === 'buyer' && (
               <button 
                 onClick={onCartClick}
                 className="relative flex items-center gap-2 text-gray-700 hover:text-gray-900 px-3 py-2 rounded-lg transition-colors cursor-pointer"
@@ -82,9 +84,9 @@ export function Header({ mode, setMode, cartCount, onCartClick }: HeaderProps) {
             
             <div className="relative">
               <button
-                onClick={() => setMode('profile')}
+                onClick={onProfileClick}
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ml-2 border ${
-                  mode === 'profile' ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
+                  isProfileActive ? 'bg-gray-900 text-white border-gray-900' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'
                 }`}
                 title="Profile"
               >

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ShoppingCart } from 'lucide-react';
 import { Product } from '../types';
+import { formatPrice } from '../utils';
 
 interface ProductCardProps {
   key?: React.Key;
@@ -40,7 +41,7 @@ export function ProductCard({ product, onAddToCart, onClick }: ProductCardProps)
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex justify-between items-start gap-4 mb-2">
           <h3 className="font-sans font-medium text-gray-900 line-clamp-2">{product.name}</h3>
-          <span className="font-mono font-medium text-gray-900">₹{product.price.toFixed(2)}</span>
+          <span className="font-mono font-medium text-gray-900">₹{formatPrice(product.price, product.displayPrice)}</span>
         </div>
         <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">{product.description}</p>
         <div className="text-xs font-mono text-gray-400 mt-auto uppercase tracking-wider">

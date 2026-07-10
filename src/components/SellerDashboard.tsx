@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
+import { formatPrice, formatTotalPrice } from '../utils';
 import { Plus, Package, IndianRupee, TrendingUp, X, Upload, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageCropper } from './ImageCropper';
@@ -70,7 +71,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
     setEditingProductId(product.id);
     setFormData({
       name: product.name,
-      price: product.price.toString(),
+      price: product.displayPrice || product.price.toString(),
       description: product.description,
       images: product.images || []
     });
@@ -85,6 +86,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
       onEditProduct(editingProductId, {
         name: formData.name,
         price: parseFloat(formData.price),
+        displayPrice: formData.price,
         description: formData.description,
         images: formData.images
       });
@@ -92,6 +94,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
       onAddProduct({
         name: formData.name,
         price: parseFloat(formData.price),
+        displayPrice: formData.price,
         description: formData.description,
         images: formData.images,
         sellerId: sellerId,
@@ -156,7 +159,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Inventory Value (Est.)</p>
-              <p className="text-2xl font-semibold text-gray-900">₹{totalValue.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-gray-900">₹{formatTotalPrice(myProducts.map(p => ({ product: p, quantity: 1 })))}</p>
             </div>
           </div>
         </div>
@@ -299,7 +302,7 @@ export function SellerDashboard({ products, sellerId, sellerName, onAddProduct, 
                   <p className="text-gray-500 text-sm mt-1 line-clamp-2">{product.description}</p>
                 </div>
                 <div className="flex items-center gap-3 mt-4 sm:mt-0">
-                  <span className="font-mono font-medium text-gray-900 mr-3">₹{product.price.toFixed(2)}</span>
+                  <span className="font-mono font-medium text-gray-900 mr-3">₹{formatPrice(product.price, product.displayPrice)}</span>
                   <button 
                     onClick={() => handleEditClick(product)}
                     className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors"

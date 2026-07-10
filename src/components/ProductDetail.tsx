@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
+import { formatPrice } from '../utils';
 import { ArrowLeft, Star, ShoppingCart, CreditCard, User, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -104,7 +105,7 @@ export function ProductDetail({ product, onBack, onAddToCart, onBuyNow }: Produc
             </div>
 
             <div className="font-mono text-3xl font-medium text-gray-900 mb-6">
-              ₹{product.price.toFixed(2)}
+              ₹{formatPrice(product.price, product.displayPrice)}
             </div>
 
             <p className="text-gray-600 mb-8 whitespace-pre-wrap flex-grow">

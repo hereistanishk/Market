@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { Product, ProfileData } from '../types';
+import { formatPrice, formatTotalPrice } from '../utils';
 import { motion } from 'motion/react';
 
 declare global {
@@ -212,7 +213,7 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
                     <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                   </div>
                   <div className="font-medium text-gray-900">
-                    ₹{(item.product.price * item.quantity).toFixed(2)}
+                    ₹{formatPrice(item.product.price * item.quantity, item.product.displayPrice)}
                   </div>
                 </div>
               ))}
@@ -227,7 +228,7 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-600">
                 <span>Items total</span>
-                <span>₹{total.toFixed(2)}</span>
+                <span>₹{formatTotalPrice(products)}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery fee</span>
@@ -236,7 +237,7 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
               <div className="h-px bg-gray-100 my-4" />
               <div className="flex justify-between text-lg font-bold text-gray-900">
                 <span>Total</span>
-                <span>₹{total.toFixed(2)}</span>
+                <span>₹{formatTotalPrice(products)}</span>
               </div>
             </div>
 
