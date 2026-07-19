@@ -106,7 +106,13 @@ export function Checkout({ products, profile, onBack, onPlaceOrder }: CheckoutPr
         setErrorMsg(`Payment failed: ${response.error.description}`);
         setIsProcessing(false);
       });
-      rzp.open();
+      const IS_PAYMENT_ENABLED = false;
+      if (IS_PAYMENT_ENABLED) {
+        rzp.open();
+      } else {
+        alert("Payments are currently offline");
+        setIsProcessing(false);
+      }
     } catch (error: any) {
       setErrorMsg(error.message || "Something went wrong");
       setIsProcessing(false);
